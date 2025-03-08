@@ -4,10 +4,10 @@ import (
 	"mathgpt/app/apiException"
 	"mathgpt/app/midwares"
 	userservices "mathgpt/app/services/userServices"
-	"strconv"
-	"time"
+	"mathgpt/app/utils"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm/logger"
 )
 
 type loginRequest struct {
@@ -22,22 +22,23 @@ func LoginByIDHandler(c *gin.Context) {
 		return
 	}
 
-	account, err := strconv.ParseUint(req.Account, 0, 0)
-	if err != nil {
-		c.AbortWithError(400, apiException.ParamError)
-		return
-	}
+	// account, err := strconv.ParseUint(req.Account, 0, 0)
+	// if err != nil {
+	// 	c.AbortWithError(400, apiException.ParamError)
+	// 	return
+	// }
 
-	user, err := userservices.GetUserByIDAndPass(uint(account), req.Password)
-	if err != nil {
+	user, err := userservices.GetUserByIDAndPass(req.Account, req.Password)
+	if err != nil && user.ID == req.Account {
 		c.AbortWithError(400, apiException.NoThatUserOrPasswordWrong)
 		return
 	}
 
-	token, err := midwares.CreateJWT(user.ID, time.Duration(env.TokenDuration))
+	token, err := midwares.CreateJWT(user.ID)
 
 	if err != nil {
 		c.AbortWithError(500, apiException.ServerError)
+		logger.Default.Error(c, "JWT creation failed: %v", err)
 		return
 	}
 
@@ -54,13 +55,13 @@ func LoginByEmailHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := userservice.GetUserByEmailAndPass(req.Account, req.Password)
+	user, err := userservices.GetUserByEmailAndPass(req.Account, req.Password)
 	if err != nil {
 		c.AbortWithError(400, apiException.NoThatUserOrPasswordWrong)
 		return
 	}
 
-	token, err := authservice.CreateJWT(user.ID, time.Duration(env.TokenDuration))
+	token, err := midwares.CreateJWT(user.ID)
 
 	if err != nil {
 		c.AbortWithError(500, apiException.ServerError)
@@ -80,13 +81,13 @@ func LoginByPhoneHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := userservice.GetUserByPhoneAndPass(req.Account, req.Password)
+	user, err := userservices.GetUserByPhoneAndPass(req.Account, req.Password)
 	if err != nil {
 		c.AbortWithError(400, apiException.NoThatUserOrPasswordWrong)
 		return
 	}
 
-	token, err := authservice.CreateJWT(user.ID, time.Duration(env.TokenDuration))
+	token, err := midwares.CreateJWT(user.ID)
 
 	if err != nil {
 		c.AbortWithError(500, apiException.ServerError)

@@ -1,7 +1,13 @@
 package mysql
 
-import "gorm.io/gorm"
+import (
+	"mathgpt/app/models"
+
+	"gorm.io/gorm"
+)
 
 func autoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate()
+	return db.AutoMigrate(
+		&models.User{},
+	)
 }

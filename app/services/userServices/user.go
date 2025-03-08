@@ -50,7 +50,7 @@ func GetUserByID(userID uint) (*models.User, error) {
 	return &user, nil
 }
 
-func GetUserByIDAndPass(userID uint, password string) (*models.User, error) {
+func GetUserByIDAndPass(userID, password string) (*models.User, error) {
 	var user models.User
 	result := mysql.MysqlDB.Where("id = ? and password = ?", userID, password).First(&user)
 	if result.Error != nil {

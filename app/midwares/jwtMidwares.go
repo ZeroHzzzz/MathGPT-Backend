@@ -5,12 +5,16 @@ import (
 	"encoding/base64"
 	"fmt"
 	"mathgpt/app/models"
+	"mathgpt/configs/config"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
+
+var duration = config.Config.GetDuration("jwt.duration")
+var jwtSecret = generateJwtSecret()
 
 func generateJwtSecret() string {
 	// 生成一个32字节的随机密钥
@@ -20,9 +24,7 @@ func generateJwtSecret() string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-var jwtSecret = generateJwtSecret()
-
-func CreateJWT(userID uint, duration time.Duration) (string, error) {
+func CreateJWT(userID string) (string, error) {
 	claims := models.Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -32,7 +34,7 @@ func CreateJWT(userID uint, duration time.Duration) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString([]byte(jwtSecret))
 }
 
 func ParseJWT(tokenString string) (*models.Claims, error) {
@@ -72,7 +74,7 @@ func RefreshJWT(c *gin.Context) {
 	}
 
 	// 生成新的Token
-	newToken, err := CreateJWT(claims.UserID, time.Hour*2)
+	newToken, err := CreateJWT(claims.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

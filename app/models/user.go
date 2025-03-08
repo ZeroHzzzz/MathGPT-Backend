@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID        uint      `gorm:"primaryKey"`                     // 用户唯一标识
+	ID        string    `gorm:"primaryKey"`                     // 用户唯一标识
 	Username  string    `gorm:"unique;not null;default:'momo'"` // 用户名
 	Email     string    `gorm:"type:varchar(100)"`              // 邮箱
 	Phone     string    `gorm:"unique;not null"`                // 手机号
@@ -17,6 +17,6 @@ type User struct {
 }
 
 type Claims struct {
-	UserID uint `json:"userID"`
+	UserID string `json:"userID"`
 	jwt.RegisteredClaims
 }
