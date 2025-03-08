@@ -43,12 +43,13 @@ func ResetPassHandler(c *gin.Context) {
 }
 
 type updateProfileRequest struct {
+	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 }
 
 func UpdateProfileHandler(c *gin.Context) {
 	var req updateProfileRequest
-	userID, exists := c.Get("user_id")
+	currentID, exists := c.Get("user_id")
 	if !exists {
 		c.AbortWithError(400, apiException.NotLogin)
 		return
@@ -59,7 +60,13 @@ func UpdateProfileHandler(c *gin.Context) {
 		return
 	}
 
-	err := userservices.UpdateUser(userID.(string), map[string]interface{}{
+	if req.UserID != currentID {
+		logger.Default.Error(c, "User %s tried to access user %s's profile", currentID, req.UserID)
+		c.AbortWithError(400, apiException.NotLogin)
+		return
+	}
+
+	err := userservices.UpdateUser(req.UserID, map[string]interface{}{
 		"username": req.Username,
 	})
 	if err != nil {
@@ -72,7 +79,7 @@ func UpdateProfileHandler(c *gin.Context) {
 		}
 	}
 
-	user, err := userservices.GetUserByID(userID.(string))
+	user, err := userservices.GetUserByID(req.UserID)
 	if err != nil {
 		c.AbortWithError(500, apiException.ServerError)
 		return
