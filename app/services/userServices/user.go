@@ -41,9 +41,9 @@ func GetUserByEmail(email string) (*models.User, error) {
 }
 
 // GetUserByID 根据用户 ID 查询用户
-func GetUserByID(userID uint) (*models.User, error) {
+func GetUserByID(userID string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.First(&user, userID)
+	result := mysql.MysqlDB.Where("id = ?", userID).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -78,7 +78,7 @@ func GetUserByPhoneAndPass(phone, password string) (*models.User, error) {
 }
 
 // UpdateUser 更新用户信息
-func UpdateUser(userID uint, updates map[string]interface{}) error {
+func UpdateUser(userID string, updates map[string]interface{}) error {
 	result := mysql.MysqlDB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
 	if result.Error != nil {
 		return result.Error
@@ -89,7 +89,7 @@ func UpdateUser(userID uint, updates map[string]interface{}) error {
 }
 
 // DeleteUser 删除用户
-func DeleteUser(userID uint) error {
+func DeleteUser(userID string) error {
 	result := mysql.MysqlDB.Delete(&models.User{}, userID)
 	if result.Error != nil {
 		return result.Error

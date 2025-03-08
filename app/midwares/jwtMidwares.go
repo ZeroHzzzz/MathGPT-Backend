@@ -3,8 +3,10 @@ package midwares
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+	"log"
+	"mathgpt/app/apiException"
 	"mathgpt/app/models"
+	"mathgpt/app/utils"
 	"mathgpt/configs/config"
 	"net/http"
 	"time"
@@ -13,7 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var duration = config.Config.GetDuration("jwt.duration")
+var Duration = config.Config.GetDuration("jwt.duration")
 var jwtSecret = generateJwtSecret()
 
 func generateJwtSecret() string {
@@ -28,7 +30,7 @@ func CreateJWT(userID string) (string, error) {
 	claims := models.Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(Duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "MathGPT",
 		},
@@ -38,49 +40,62 @@ func CreateJWT(userID string) (string, error) {
 }
 
 func ParseJWT(tokenString string) (*models.Claims, error) {
+	// Remove "Bearer " prefix if it exists
+	if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
+		tokenString = tokenString[7:]
+	}
+
 	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			log.Printf("Invalid token signing method: %v", token.Header["alg"])
+			return nil, apiException.NotLogin
 		}
 		return []byte(jwtSecret), nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-		return claims, nil
+
+	claims, ok := token.Claims.(*models.Claims)
+	if !ok || !token.Valid {
+		return nil, apiException.NotLogin
 	}
-	return nil, fmt.Errorf("not logged in")
+
+	return claims, nil
 }
 
 func RefreshJWT(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		c.JSON(http.StatusUnauthorized, apiException.NotLogin)
 		return
 	}
 
 	// 解析Token
 	claims, err := ParseJWT(tokenString)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.JSON(http.StatusUnauthorized, apiException.NotLogin)
 		return
 	}
 
 	// 检查Token是否接近过期（例如10分钟内）
 	if time.Until(claims.ExpiresAt.Time) > time.Minute*10 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is not close to expiration"})
+		c.JSON(http.StatusUnauthorized, apiException.NotLogin)
 		return
 	}
 
 	// 生成新的Token
 	newToken, err := CreateJWT(claims.UserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, apiException.ServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
+	utils.JsonSuccessResponse(c, gin.H{
+		"token":     newToken,
+		"expiresIn": Duration,
+	})
 }
 
 func JWTMiddleware() gin.HandlerFunc {
@@ -88,7 +103,7 @@ func JWTMiddleware() gin.HandlerFunc {
 		// 从请求头获取Token
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is required"})
+			c.JSON(http.StatusUnauthorized, apiException.NotLogin)
 			c.Abort()
 			return
 		}
@@ -96,13 +111,13 @@ func JWTMiddleware() gin.HandlerFunc {
 		// 解析Token
 		claims, err := ParseJWT(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusUnauthorized, apiException.NotLogin)
 			c.Abort()
 			return
 		}
 
 		// 将解析后的数据存储到上下文中，供后续使用
-		c.Set("userID", claims.UserID)
+		c.Set("user_id", claims.UserID)
 		c.Next()
 	}
 }

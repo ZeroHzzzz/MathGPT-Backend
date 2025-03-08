@@ -7,7 +7,6 @@ import (
 	"mathgpt/app/utils"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/logger"
 )
 
 type loginRequest struct {
@@ -38,13 +37,15 @@ func LoginByIDHandler(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithError(500, apiException.ServerError)
-		logger.Default.Error(c, "JWT creation failed: %v", err)
 		return
 	}
 
+	c.Set("user_id", user.ID)
+
 	utils.JsonSuccessResponse(c, gin.H{
-		"user":  user,
-		"token": token,
+		"user":      user,
+		"token":     token,
+		"expiresIn": midwares.Duration,
 	})
 }
 
@@ -94,8 +95,11 @@ func LoginByPhoneHandler(c *gin.Context) {
 		return
 	}
 
+	c.Set("user_id", user.ID)
+
 	utils.JsonSuccessResponse(c, gin.H{
-		"user":  user,
-		"token": token,
+		"user":      user,
+		"token":     token,
+		"expiresIn": midwares.Duration,
 	})
 }
