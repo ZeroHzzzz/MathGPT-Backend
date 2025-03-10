@@ -11,15 +11,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var MongoDB *mongo.Collection
+type MongoDB struct {
+	Client *mongo.Client
+	DB     *mongo.Database
+}
 
-func Init() {
+// var MongoDB *mongo.Collection
+
+func Init() *MongoDB {
 	user := config.Config.GetString("mongodb.user")
 	pass := config.Config.GetString("mongodb.pass")
 	host := config.Config.GetString("mongodb.host")
 	port := config.Config.GetString("mongodb.port")
 	db := config.Config.GetString("mongodb.db")
-	collection := config.Config.GetString("mongodb.collection")
+	// collection := config.Config.GetString("mongodb.collection")
 
 	// 构建 MongoDB 连接字符串
 	dsn := fmt.Sprintf("mongodb://%v:%v@%v:%v/%v", user, pass, host, port, db)
@@ -35,11 +40,11 @@ func Init() {
 		log.Fatal("Failed to ping MongoDB:" + err.Error())
 	}
 
-	// Set the MongoDB database
-	mdb := client.Database(db).Collection(collection)
-
-	MongoDB = mdb
-
 	// Print a log message to indicate successful connection to MongoDB
 	log.Println("Connected to MongoDB")
+
+	return &MongoDB{
+		Client: client,
+		DB:     client.Database(db),
+	}
 }

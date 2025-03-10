@@ -9,9 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var MysqlDB *gorm.DB
-
-func Init() { // 初始化数据库
+func Init() *gorm.DB { // 初始化数据库
 
 	user := config.Config.GetString("mysql.user")
 	pass := config.Config.GetString("mysql.pass")
@@ -21,7 +19,7 @@ func Init() { // 初始化数据库
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, name)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true, // 关闭外键约束 提升数据库速度
+		// DisableForeignKeyConstraintWhenMigrating: true, // 关闭外键约束 提升数据库速度
 	})
 
 	if err != nil {
@@ -32,5 +30,6 @@ func Init() { // 初始化数据库
 	if err != nil {
 		log.Fatal("DatabaseMigrateFailed", err)
 	}
-	MysqlDB = db
+
+	return db
 }

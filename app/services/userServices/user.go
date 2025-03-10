@@ -3,7 +3,7 @@ package userservices
 import (
 	"mathgpt/app/apiException"
 	"mathgpt/app/models"
-	"mathgpt/configs/database/mysql"
+	"mathgpt/configs/database"
 )
 
 func CreateUser(email, phone, password string) (*models.User, error) {
@@ -13,7 +13,7 @@ func CreateUser(email, phone, password string) (*models.User, error) {
 		Password: password,
 	}
 
-	result := mysql.MysqlDB.Create(user)
+	result := database.Database.MyDB.Create(user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -23,7 +23,7 @@ func CreateUser(email, phone, password string) (*models.User, error) {
 // GetUserByPhone 根据手机号查询用户
 func GetUserByPhone(phone string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("phone = ?", phone).First(&user)
+	result := database.Database.MyDB.Where("phone = ?", phone).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -33,7 +33,7 @@ func GetUserByPhone(phone string) (*models.User, error) {
 // GetUserByEmail 根据邮箱查询用户
 func GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("email = ?", email).First(&user)
+	result := database.Database.MyDB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -43,7 +43,7 @@ func GetUserByEmail(email string) (*models.User, error) {
 // GetUserByID 根据用户 ID 查询用户
 func GetUserByID(userID string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("id = ?", userID).First(&user)
+	result := database.Database.MyDB.Where("id = ?", userID).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -52,7 +52,7 @@ func GetUserByID(userID string) (*models.User, error) {
 
 func GetUserByIDAndPass(userID, password string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("id = ? and password = ?", userID, password).First(&user)
+	result := database.Database.MyDB.Where("id = ? and password = ?", userID, password).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -61,7 +61,7 @@ func GetUserByIDAndPass(userID, password string) (*models.User, error) {
 
 func GetUserByEmailAndPass(email, password string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("email = ? and password = ?", email, password).First(&user)
+	result := database.Database.MyDB.Where("email = ? and password = ?", email, password).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -70,7 +70,7 @@ func GetUserByEmailAndPass(email, password string) (*models.User, error) {
 
 func GetUserByPhoneAndPass(phone, password string) (*models.User, error) {
 	var user models.User
-	result := mysql.MysqlDB.Where("phone = ? and password = ?", phone, password).First(&user)
+	result := database.Database.MyDB.Where("phone = ? and password = ?", phone, password).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -79,7 +79,7 @@ func GetUserByPhoneAndPass(phone, password string) (*models.User, error) {
 
 // UpdateUser 更新用户信息
 func UpdateUser(userID string, updates map[string]interface{}) error {
-	result := mysql.MysqlDB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
+	result := database.Database.MyDB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
 	if result.Error != nil {
 		return result.Error
 	} else if result.RowsAffected == 0 {
@@ -90,7 +90,7 @@ func UpdateUser(userID string, updates map[string]interface{}) error {
 
 // DeleteUser 删除用户
 func DeleteUser(userID string) error {
-	result := mysql.MysqlDB.Delete(&models.User{}, userID)
+	result := database.Database.MyDB.Delete(&models.User{}, userID)
 	if result.Error != nil {
 		return result.Error
 	}
