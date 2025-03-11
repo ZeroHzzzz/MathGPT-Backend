@@ -2,20 +2,22 @@ package chathandler
 
 import (
 	"mathgpt/app/apiException"
+	llmservices "mathgpt/app/services/llmServices"
 	messageservices "mathgpt/app/services/messageServices"
+	"mathgpt/app/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-type newMessage struct {
-	ChatID  string `json:"chat_id"`
+type newQuestion struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-func NewMessage(c *gin.Context) {
-	var req newMessage
-	if err := c.ShouldBindJSON(&req); err != nil {
+func NewQuestion(c *gin.Context) {
+	var req newQuestion
+	chatID := c.Param("chatID")
+	if err := c.ShouldBindJSON(&req); err != nil || chatID == "" {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid request"})
 		return
 	}
@@ -26,9 +28,20 @@ func NewMessage(c *gin.Context) {
 		return
 	}
 
-	err := messageservices.CreateMessage(req.ChatID, req.Role, req.Content)
+	err := messageservices.CreateMessage(chatID, req.Role, req.Content)
 	if err != nil {
 		c.AbortWithError(500, err)
 		return
 	}
+
+	ans, err := llmservices.GetAnswer(req.Content)
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+
+	utils.JsonSuccessResponse(c, gin.H{
+		"role":    "llm",
+		"content": ans,
+	})
 }

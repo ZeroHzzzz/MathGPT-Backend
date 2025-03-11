@@ -11,7 +11,7 @@ import (
 
 var DB *gorm.DB
 
-func Init() { // 初始化数据库
+func init() { // 初始化数据库
 
 	user := config.Config.GetString("mysql.user")
 	pass := config.Config.GetString("mysql.pass")

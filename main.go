@@ -4,8 +4,6 @@ import (
 	"log"
 	"mathgpt/app/midwares"
 	"mathgpt/configs/config"
-	"mathgpt/configs/database/mongodb"
-	"mathgpt/configs/database/mysql"
 	"mathgpt/configs/router"
 
 	"github.com/gin-contrib/cors"
@@ -16,9 +14,16 @@ var port = ":" + config.Config.GetString("server.port")
 
 func main() {
 
-	mongodb.Init()
-	mysql.Init()
+	// mongodb.Init()
+	// mysql.Init()
 
+	// ctx := context.Background()
+	// testData := bson.M{
+	// 	"message":    "Hello, this is a test message",
+	// 	"created_at": time.Now(),
+	// }
+	// col := mongodb.MDB.Collection("chats")
+	// col.InsertOne(ctx, testData)
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.Use(midwares.ErrHandler())

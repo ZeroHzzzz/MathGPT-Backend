@@ -11,16 +11,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type MongoDB struct {
-	Client *mongo.Client
-	DB     *mongo.Database
-}
+// type MongoDB struct {
+// 	Client *mongo.Client
+// 	DB     *mongo.Database
+// }
 
 var MDB *mongo.Database
 
 // var MongoDB *mongo.Collection
 
-func Init() {
+func init() {
 	user := config.Config.GetString("mongodb.user")
 	pass := config.Config.GetString("mongodb.pass")
 	host := config.Config.GetString("mongodb.host")
@@ -39,10 +39,12 @@ func Init() {
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:" + err.Error())
+		return
 	}
 
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		log.Fatal("Failed to ping MongoDB:" + err.Error())
+		return
 	}
 
 	// Print a log message to indicate successful connection to MongoDB
