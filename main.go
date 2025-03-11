@@ -4,6 +4,7 @@ import (
 	"log"
 	"mathgpt/app/midwares"
 	"mathgpt/configs/config"
+	"mathgpt/configs/database/mongodb"
 	"mathgpt/configs/database/mysql"
 	"mathgpt/configs/router"
 
@@ -15,7 +16,9 @@ var port = ":" + config.Config.GetString("server.port")
 
 func main() {
 
+	mongodb.Init()
 	mysql.Init()
+
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.Use(midwares.ErrHandler())

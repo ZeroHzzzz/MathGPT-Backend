@@ -16,9 +16,11 @@ type MongoDB struct {
 	DB     *mongo.Database
 }
 
+var MDB *mongo.Database
+
 // var MongoDB *mongo.Collection
 
-func Init() *MongoDB {
+func Init() {
 	user := config.Config.GetString("mongodb.user")
 	pass := config.Config.GetString("mongodb.pass")
 	host := config.Config.GetString("mongodb.host")
@@ -26,8 +28,11 @@ func Init() *MongoDB {
 	db := config.Config.GetString("mongodb.db")
 	// collection := config.Config.GetString("mongodb.collection")
 
-	// 构建 MongoDB 连接字符串
 	dsn := fmt.Sprintf("mongodb://%v:%v@%v:%v/%v", user, pass, host, port, db)
+	// 构建 MongoDB 连接字符串
+	if user == "" || pass == "" {
+		dsn = fmt.Sprintf("mongodb://%v:%v/%v", host, port, db)
+	}
 
 	// 使用 dsn 连接 MongoDB
 	clientOptions := options.Client().ApplyURI(dsn)
@@ -43,8 +48,5 @@ func Init() *MongoDB {
 	// Print a log message to indicate successful connection to MongoDB
 	log.Println("Connected to MongoDB")
 
-	return &MongoDB{
-		Client: client,
-		DB:     client.Database(db),
-	}
+	MDB = client.Database(db)
 }

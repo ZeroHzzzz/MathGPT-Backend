@@ -2,13 +2,13 @@ package messageservices
 
 import (
 	"context"
-	"mathgpt/configs/database"
+	"mathgpt/configs/database/mongodb"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var collection = database.Database.MDB.DB.Collection("messages")
+var collection = mongodb.MDB.Collection("messages")
 
 func CreateMessage(chatID, Role, Content string) error {
 	message := bson.M{

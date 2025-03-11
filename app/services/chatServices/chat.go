@@ -3,13 +3,13 @@ package chatservices
 import (
 	"context"
 	"mathgpt/app/models"
-	"mathgpt/configs/database"
+	"mathgpt/configs/database/mongodb"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var collection = database.Database.MDB.DB.Collection("chats")
+var collection = mongodb.MDB.Collection("chats")
 
 func NewChat(userID string) (primitive.ObjectID, error) {
 	newChat := models.Chat{
