@@ -24,6 +24,7 @@ func main() {
 	// }
 	// col := mongodb.MDB.Collection("chats")
 	// col.InsertOne(ctx, testData)
+
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.Use(midwares.ErrHandler())
@@ -35,4 +36,15 @@ func main() {
 	if err != nil {
 		log.Fatal("ServerStartFailed", err)
 	}
+
+	// chatID := "67d08ea411f471a135098bdb"
+
+	// // 尝试转换为 ObjectID
+	// objID, err := primitive.ObjectIDFromHex(chatID)
+	// if err != nil {
+	// 	log.Printf("the provided hex string is not a valid ObjectID: %v", err)
+	// 	return
+	// }
+
+	// fmt.Println("Successfully converted to ObjectID:", objID.Hex())
 }

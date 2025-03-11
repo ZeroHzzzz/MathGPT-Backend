@@ -30,9 +30,12 @@ func Init(r *gin.Engine) {
 	{
 		chat.Use(midwares.JWTMiddleware())
 		chat.POST("/new", chathandler.NewChatHandler)
+		chat.GET("/history", chathandler.GetChatHandler)
+		chat.DELETE("/:chat_id", chathandler.DelChatHandler)
 	}
 	message := chat.Group("/message")
 	{
-		message.GET("/question/:chatID", chathandler.NewQuestion)
+		message.POST("/question/:chat_id", chathandler.NewQuestion)
+		message.GET("/history/:chat_id", chathandler.GetMessageHandler)
 	}
 }
